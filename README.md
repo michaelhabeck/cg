@@ -1,4 +1,4 @@
-# isdhic #
+# cg #
 
 This Python package implements methods for Bayesian coarse-graining of biomolecular structures. 
 

@@ -169,6 +169,30 @@ class LJPotential(DistancePotential):
     def r_min(self):
         return 2**(1/6.) * self.sigma
 
+class LJPotentialFast(LJPotential):
+
+    def __call__(self, x):
+
+        from .lj import energy
+
+        eps = self.params[0]**2 / self.params[1]
+        sig = -self.params[1] / self.params[0]
+
+        return energy(np.ascontiguousarray(x.reshape(-1,)), float(sig), float(eps))
+
+    def gradient(self, x):
+
+        from .lj import gradient
+
+        eps = self.params[0]**2 / self.params[1]
+        sig = - self.params[1] / self.params[0]
+
+        g = np.zeros(np.prod(x.shape))
+
+        gradient(np.ascontiguousarray(x.reshape(-1,)), g, float(sig), float(eps))
+
+        return g.reshape(x.shape)
+
 class PotentialEstimator(object):
 
     def __init__(self, features):

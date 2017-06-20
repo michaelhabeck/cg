@@ -1,9 +1,26 @@
+import time
+import contextlib
 import numpy as np
 
 from scipy.spatial.distance import squareform
 
 from csb.bio.io import StructureParser
 from csb.bio.utils import distance_matrix
+
+def format_time(t):
+
+    units = [(1.,'s'),(1e-3,'ms'),(1e-6,'us'),(1e-9,'ns')]
+    for scale, unit in units:
+        if t > scale or t==0: break
+        
+    return '{0:.1f} {1}'.format(t/scale, unit)
+
+@contextlib.contextmanager
+def take_time(desc):
+    t0 = time.clock()
+    yield
+    dt = time.clock() - t0
+    print '{0} took {1}'.format(desc, format_time(dt))
 
 def load_coords(pdbfile, chainids=None):
 

@@ -5,12 +5,12 @@ import numpy as np
 
 from csb.bio.utils import radius_of_gyration
 
-from .features import DistanceFeature, DistancePotential, LJPotential, PotentialEstimator
+from .features import DistanceFeature, DistancePotential, LJPotential, LJPotentialFast, PotentialEstimator
 from .hmc import HMC
 from .likelihood import Likelihood, KDLikelihood
 from .params import Parameters
 from .posterior import PosteriorX, PosteriorS, PosteriorZ, PosteriorTheta
-from .utils import calc_distances, load_example, rel_error
+from .utils import calc_distances, load_example, rel_error, take_time
 
 try:
     from sklearn.cluster import KMeans
@@ -50,7 +50,7 @@ def setup_posterior(coords, K, k=10, run_kmeans=True):
     L = Likelihood(coords, params) if k is None else \
         KDLikelihood(coords, params, k)
 
-    prior = LJPotential() #LJPotentialFast(K)
+    prior = LJPotentialFast()
 
     params.attach_callback_setX(L.invalidate_distances)
     params.attach_callback_setZ(L.invalidate_stats)

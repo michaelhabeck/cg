@@ -40,6 +40,8 @@ setup(
     license=LICENSE,
     requires=REQUIRES,
     cmdclass={'build_ext': build_ext},
+    ext_modules=cythonize("cg/*.pyx"), 
+    include_dirs = [numpy.get_include()],
     classifiers=(
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',

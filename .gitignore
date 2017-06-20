@@ -3,3 +3,4 @@
 build/*
 dist/*
 cg.egg*
+cg/*.c
