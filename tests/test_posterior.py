@@ -7,15 +7,15 @@ from csb.bio.utils import rmsd, radius_of_gyration
 x = cg.load_example(['4ake','1oelA','1tyq'][2])
 N = len(x)
 K = 500
-k = 20
+k = None #20
 
 p_Z, p_s, p_X, p_theta = cg.setup_posterior(x, K, k, run_kmeans=not False)
 
 L = p_Z.likelihood
 params = L.params
 
-p_X.sampler.T  = 50
-p_X.sampler.dt = 1e-7
+p_X.sampler.T  = 100
+p_X.sampler.dt = 1e-5
 dt_max = 1e-3
 
 p_theta.sample()
@@ -59,5 +59,10 @@ for i in range(10000):
 
 r_min = np.array(r_min)
 eps   = np.array(eps)
-mask  = np.logical_and(np.logical_not(np.isnan(r_min)), eps>0)
+mask  = np.logical_not(np.isnan(r_min))
+mask  = np.logical_and(mask, eps>0)
 
+theta = np.array(theta)
+mask  = np.logical_and(theta[:,0]<0, theta[:,1]>0)
+
+r_min, eps = cg.utils.calc_LJ_params(theta[mask])
