@@ -1,6 +1,6 @@
 import numpy as np
 
-from .utils import calc_distances, calc_distances_fast
+from .utils import calc_distances
 
 from scipy.spatial.distance import squareform
 
@@ -18,7 +18,7 @@ class DistanceFeature(object):
         """
         d = calc_distances(x) if d is None else d
 
-        return np.sum(d**(-self.n))
+        return np.sum(d**(-0.5*self.n))
 
     def gradient(self, x, D=None):
         """
@@ -27,7 +27,7 @@ class DistanceFeature(object):
         dx = np.array([np.subtract.outer(x[:,d],x[:,d]) for d in range(x.shape[1])])
 
         D  = calc_distances(x) if D is None else D
-        D  = D**(-self.n-2)
+        D  = D**(-0.5*self.n-1)
         D  = squareform(D)
 
         g = - self.n * dx * D
@@ -40,7 +40,7 @@ class DistanceFeature(object):
         """
         d = calc_distances(x) if d is None else d
 
-        return 2 * self.n * (self.n-1) * np.sum(d**(-self.n-2))
+        return 2 * self.n * (self.n-1) * np.sum(d**(-0.5*self.n-1))
 
     def hessian(self, x, d=None):
         """
@@ -59,7 +59,7 @@ class DistanceFeature(object):
 
                 dx = x[i]-x[j]
                 r  = d[i,j]
-                h  = n / r**(n+4) * ((n+2) * np.multiply.outer(dx,dx) - np.eye(3) * r**2)
+                h  = n / r**(0.5*n+2) * ((n+2) * np.multiply.outer(dx,dx) - np.eye(3) * r)
 
                 H[3*i:3*(i+1), 3*j:3*(j+1)]  = -h 
                 H[3*i:3*(i+1), 3*i:3*(i+1)] +=  h
@@ -166,7 +166,7 @@ class LJPotential(DistancePotential):
 
     @property
     def r_min(self):
-        return 2**(1/6.) * self.sigma 
+        return 2**(1/6.) * self.sigma / 2.
 
 class LJPotentialFast(LJPotential):
 
@@ -201,9 +201,6 @@ class PotentialEstimator(object):
 
     def update_distances(self, x):
         self._distances = calc_distances(x)
-
-    def invalidate_distances(self):
-        self._distances = None
 
     @property
     def distances(self):

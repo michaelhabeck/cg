@@ -40,15 +40,13 @@ class Posterior(object):
 
 class PosteriorX(Posterior):
 
-    def __init__(self, likelihood, pi=LJPotential(), lower=None, upper=None):
+    def __init__(self, likelihood, pi=LJPotential()):
 
         super(PosteriorX, self).__init__(likelihood, pi)
 
         pi.params = self.params.theta
 
         self.sampler = HMC(self)
-        self.lower   = lower
-        self.upper   = upper
         
     def __call__(self, x):
         return self.beta * self.likelihood.energy(x) + self.prior(x)
@@ -56,28 +54,11 @@ class PosteriorX(Posterior):
     def gradient(self, x):
         return self.beta * self.likelihood.gradient(x) + self.prior.gradient(x)
 
-    def outside_box(self, X):
-        
-        if self.lower is not None:
-            if np.any(X.min(0) < self.lower):
-                return True
-
-        if self.upper is not None:
-            if np.any(X.max(0) > self.upper):
-                return True
-
-        return False
-    
     def sample(self):
 
         if not self.update: return
             
-        X = self.sampler.run(self.params.X.copy())
-
-        if not self.outside_box(X):
-            self.params.X[...] = X 
-        else:
-            print 'Outside'
+        self.params.X = self.sampler.run(self.params.X.copy())
                 
 class PosteriorZ(Posterior):
 
@@ -118,8 +99,7 @@ class PosteriorTheta(Posterior):
     def update_distances(self):
         self._distances = calc_distances(self.params.X)
 
-    def invalidate_distances(self):
-        
+    def invalidate_distances(self):        
         self._distances = None
 
     def calc_A(self):

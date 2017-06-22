@@ -5,7 +5,18 @@ import numpy as np
 from scipy.spatial.distance import squareform
 
 from csb.bio.io import StructureParser
-from csb.bio.utils import distance_matrix
+
+try:
+    from sklearn.cluster import KMeans
+    
+    def kmeans(X, K):
+        km = KMeans(K).fit(X)
+        return km.cluster_centers_
+except:
+    from scipy.cluster import vq
+
+    def kmeans(X, K):
+        return vq.kmeans(X, K)[0]
 
 def format_time(t):
 
@@ -39,30 +50,16 @@ def load_example(code='1ake', path='./data/{}.pdb'):
 def rel_error(a, b):
     return np.fabs(a-b) / (np.fabs(a) + np.fabs(b) + 1e-300)
 
-def calc_distances(coords, sep=None):
+def calc_distances(coords):
     """
     Calculate the upper diagonal of a distance matrix
     """
-    d = squareform(distance_matrix(coords), checks=False)
-
-    if sep is not None:
-        m = 1 - np.sum([np.eye(len(coords),k=k).astype('i')
-                        for k in range(1,sep+1)],0)
-        m = squareform(m,checks=False)
-        d = np.compress(m, d)
-
-    return d
-
-def calc_distances_fast(coords, return_square=False):
-
     from .lj import squared_distances
 
     x = np.ascontiguousarray(coords.flatten())
     d = np.zeros(len(coords) * (len(coords)-1) / 2)
 
     squared_distances(x, d)
-
-    if not return_square: d = np.sqrt(d)
 
     return d
 
@@ -84,30 +81,11 @@ def rdf(coords, bins=100, r_max=None):
     """
     if np.ndim(coords) == 2: coords = [coords]
 
-    d = np.concatenate(map(calc_distances, coords), 0)    
+    d = np.sqrt(np.concatenate(map(calc_distances, coords), 0))
     if r_max is not None: d = d[d<r_max]
         
     g, bins = np.histogram(d, bins=bins)
     r = 0.5 * (bins[1:]+bins[:-1])
 
     return r, g/r**2
-
-def calc_LJ_params(theta):
-
-    mask   = np.logical_and(theta[:,0]<0, theta[:,1]>0)
-    #if not mask.sum(): raise
-    theta  = np.compress(mask,theta,0)
-    r_vwd  = (-theta[:,1]/theta[:,0])**(1/6.)
-    r_vwd *= 2**(1/6.) * 0.5
-
-    eps = theta[:,0]**2 / theta[:,1] / 4.
-
-    return r_vwd, eps
-
-def calc_lambda(r_min, eps):
-
-    lambda1 = - 128. * eps * r_min**6
-    lambda2 = lambda1**2 / 4 / eps
-
-    return lambda1, lambda2
 
