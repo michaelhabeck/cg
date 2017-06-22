@@ -2,21 +2,9 @@ import numpy as np
 
 from csb.bio.utils import rmsd
 
-class Box(object):
-    """
-    Bounding box for particles
-    """
-    def __init__(self, lower, upper):
-
-        self.lower = np.array(lower)
-        self.upper = np.array(upper)
-        
-    def project(self):
-        pass
-
 class HMC(object):
 
-    def __init__(self, U, n_steps=100, stepsize=1e-3, box=None, rmsd_max=None):
+    def __init__(self, U, n_steps=100, stepsize=1e-3, rmsd_max=None):
 
         self.U  = U
         self.T  = int(n_steps)
