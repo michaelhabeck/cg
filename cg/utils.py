@@ -53,6 +53,19 @@ def calc_distances(coords, sep=None):
 
     return d
 
+def calc_distances_fast(coords, return_square=False):
+
+    from .lj import squared_distances
+
+    x = np.ascontiguousarray(coords.flatten())
+    d = np.zeros(len(coords) * (len(coords)-1) / 2)
+
+    squared_distances(x, d)
+
+    if not return_square: d = np.sqrt(d)
+
+    return d
+
 def rdf(coords, bins=100, r_max=None):
     """
     Radial distribution function

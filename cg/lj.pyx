@@ -16,6 +16,27 @@ ctypedef numpy.long_t DTYPE_LONG_t
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+def squared_distances(double [::1] x, double [::1] d):
+
+    cdef Py_ssize_t i, j, k
+    cdef double dx, dy, dz
+    cdef int n = len(x) / 3
+
+    k = 0
+    
+    for i in range(n-1):
+        for j in range(i+1, n):
+
+            dx = x[3*i+0] - x[3*j+0]
+            dy = x[3*i+1] - x[3*j+1]
+            dz = x[3*i+2] - x[3*j+2]
+
+            d[k] = dx*dx + dy*dy + dz*dz
+
+            k += 1
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def energy(double [::1] x, double sigma, double eps):
 
     cdef Py_ssize_t i, j
