@@ -1,13 +1,12 @@
 import cg
 import numpy as np
 
-from csb.bio.utils import distance_matrix, rmsd
-from scipy.cluster.vq import kmeans, kmeans2
+from csb.bio.utils import rmsd
 
 x = cg.load_example('4ake')
 N = len(x)
 K = N / 20
-X = kmeans(x, K)[0]
+X = cg.kmeans(x, K)
 K = len(X)
 
 k = 10

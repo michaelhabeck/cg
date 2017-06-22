@@ -73,7 +73,7 @@ print '-' * 30
 
 ## plot potential
 
-r = np.linspace(f.r_min*0.85, f.r_min*3, 100)
+r = np.linspace(f.r_min*0.85, f.r_min*3, 100) * 2
 
 fig, ax = plt.subplots(1, 1, figsize=(8,8))
 ax.axhline(0.,ls='--', lw=3, color='k')
