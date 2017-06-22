@@ -1,6 +1,6 @@
 import numpy as np
 
-from .utils import calc_distances
+from .utils import calc_distances, calc_distances_fast
 
 from scipy.spatial.distance import squareform
 
@@ -29,7 +29,6 @@ class DistanceFeature(object):
         D  = calc_distances(x) if D is None else D
         D  = D**(-self.n-2)
         D  = squareform(D)
-        D += np.eye(len(x))
 
         g = - self.n * dx * D
 
@@ -167,7 +166,7 @@ class LJPotential(DistancePotential):
 
     @property
     def r_min(self):
-        return 2**(1/6.) * self.sigma
+        return 2**(1/6.) * self.sigma 
 
 class LJPotentialFast(LJPotential):
 
