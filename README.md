@@ -39,6 +39,6 @@ pip install matplotlib
 ### Usage ###
 
 Examples for running Bayesian coarse-graining on PDB structure can
-be found in the *scripts/* folder.
+be found in the *tests/* and *scripts/* folder.
 
-Execute the script *cg_pdb_hmc.py*. 
+Execute the script *cg_pdb.py*. 

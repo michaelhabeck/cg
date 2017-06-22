@@ -21,7 +21,7 @@ n_gibbs   = 3e3     ## number of Gibbs sampling steps
 struct   = PDB.get(code)
 chains   = list(struct) if chains is None else chains
 coords   = np.concatenate([struct[chainid].get_coordinates() for chainid in chains])
-n_coarse = len(coords) / 250 if n_coarse is None else n_coarse
+n_coarse = len(coords) / 25 if n_coarse is None else n_coarse
 
 ## setup Gibbs sampler
 
