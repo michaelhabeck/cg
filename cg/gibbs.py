@@ -77,7 +77,7 @@ class GibbsSampler(object):
                 samples['r_min'][-1],
                 samples['eps'][-1],
                 self.posteriors['X'].sampler.dt,
-                np.sum(self.posteriors['X'].likelihood.N==0.), 
+                np.sum(self.posteriors['X'].likelihood.N<1.), 
                 radius_of_gyration(samples['X'][-1]))
                 
         print GibbsSampler.output.format(*info)
