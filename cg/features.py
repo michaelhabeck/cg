@@ -188,8 +188,9 @@ class LJPotentialFast(LJPotential):
 
         g = np.zeros(np.prod(x.shape))
 
-        gradient(np.ascontiguousarray(x.reshape(-1,)), g, float(sig), float(eps))
-
+        E = gradient(np.ascontiguousarray(x.reshape(-1,)), g, float(sig), float(eps))
+        self.E = E
+        
         return g.reshape(x.shape)
 
 class PotentialEstimator(object):
