@@ -13,7 +13,7 @@ class GibbsSampler(object):
     output = 'it={0:d}: K={1:d}, rmsd={2:.2f}, s={3:.2f}, r_min={4:.2f}, eps={5:.2f}, ' + \
              'dt={6:.2e}, #{{unassigned}}={7:d}, Rg={8:.2f}'
 
-    def __init__(self, coords, K, k=10, run_kmeans=True):
+    def __init__(self, coords, K, k=10, run_kmeans=True, weights=None):
         """
         Parameters
         ----------
@@ -35,8 +35,8 @@ class GibbsSampler(object):
 
         params = Parameters(coords, coarse)
 
-        L = Likelihood(coords, params) if k is None else \
-            KDLikelihood(coords, params, k)
+        L = Likelihood(coords, params, weights) if k is None else \
+            KDLikelihood(coords, params, k, weights)
 
         prior = LJPotentialFast()
 

@@ -93,3 +93,22 @@ def gradient(double [::1] x, double [::1] g, double sigma, double eps):
 
     return eps * E
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def weighted_sums(double [::1] coords, int [::1] indices, double [::1] weights, double [::1] means):
+
+    cdef double w
+
+    cdef Py_ssize_t n, i, j
+    cdef Py_ssize_t N = len(coords) / 3
+    
+    for n in range(N):
+
+        i = 3 * indices[n]
+        j = 3 * n
+        w = weights[n]
+
+        means[i+0] += w * coords[j+0]
+        means[i+1] += w * coords[j+1]
+        means[i+2] += w * coords[j+2]
+

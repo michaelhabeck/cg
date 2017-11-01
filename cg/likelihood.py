@@ -4,7 +4,7 @@ from csb.bio.utils import distance_matrix
 from csb.numeric import log_sum_exp
 
 from scipy.spatial import cKDTree
-from scipy.ndimage.measurements import sum as partial_sum
+from scipy.ndimage.measurements import sum as subsum
 
 class Likelihood(object):
 
@@ -12,7 +12,7 @@ class Likelihood(object):
     def labels(self):
         return self.params.Z.argmax(1)
 
-    def __init__(self, data, params):
+    def __init__(self, data, params, weights=None):
         """
         Parameters
         ----------
@@ -21,9 +21,13 @@ class Likelihood(object):
 
         params : numpy array
           fitting parameters
+
+        weights : numpy array
+          optional weights for the fine grained atoms
         """
-        self.data   = data
-        self.params = params
+        self.data    = data
+        self.params  = params
+        self.weights = weights if weights is None else weights
 
         self.invalidate_distances()
         self.invalidate_stats()
@@ -37,8 +41,11 @@ class Likelihood(object):
 
     @property
     def distances(self):
+        """
+        Squared distances
+        """
         if self._distances is None:
-            self._distances = distance_matrix(self.data, self.params.X)
+            self._distances = distance_matrix(self.data, self.params.X)**2
 
         return self._distances
 
@@ -57,8 +64,15 @@ class Likelihood(object):
 
     def update_stats(self):
 
-        self._N = self.params.Z.sum(0) + 1e-10
-        self._mu = (np.dot(self.params.Z.T, self.data).T / self._N).T
+        if self.weights is None:
+
+            self._N  = self.params.Z.sum(0) + 1e-10
+            self._mu = (np.dot(self.params.Z.T, self.data).T / self._N).T
+
+        else:
+
+            self._N  = np.dot(self.weights, self.params.Z) + 1e-10
+            self._mu = (np.dot(self.params.Z.T * self.weights, self.data).T / self._N).T
 
     def invalidate_stats(self):
         self._N, self._mu = None, None
@@ -69,14 +83,17 @@ class Likelihood(object):
 
     @property
     def chi2(self):
-        return np.sum(self.params.Z * self.distances**2)
+        if self.weights is None:
+            return np.sum(self.params.Z * self.distances)
+        else:
+            return np.dot(self.weights, self.params.Z * self.distances).sum()
     
     @property
     def probs(self):
         """
         Soft assignments between points and coarse grained sites. 
         """
-        log_prob  = -0.5 * self.distances.T**2 / self.params.s**2
+        log_prob  = -0.5 * self.distances.T / self.params.s**2
         log_prob -= log_sum_exp(log_prob, 0)
 
         return np.exp(log_prob.T)
@@ -98,12 +115,17 @@ class KDLikelihood(Likelihood):
     def labels(self):
         return np.array([self.neighbors[i,j] for i,j in enumerate(self.params.Z.argmax(1))])
         
-    def __init__(self, data, params, k=10):
+    def __init__(self, data, params, k=10, weights=None):
 
-        super(KDLikelihood, self).__init__(data, params)
+        super(KDLikelihood, self).__init__(data, params, weights)
 
         self.k = int(k)
         self.params._Z = np.zeros((len(data),k),'i')
+
+        ## helper array
+
+        if self.weights is not None:
+            self._weighted_data = self.data.T * self.weights
         
     def __call__(self):
 
@@ -119,7 +141,8 @@ class KDLikelihood(Likelihood):
 
         if self._distances is None:
             self._distances, self._neighbors = self._tree.query(self.data, self.k)
-
+            self._distances **= 2
+            
         return self._distances
 
     @property
@@ -132,19 +155,21 @@ class KDLikelihood(Likelihood):
 
     def update_stats(self):
 
-        distances = self.distances
-        neighbors = self.neighbors.astype('i')
-
-        Z  = self.params.Z.astype('d')
-        mu = np.zeros(list(reversed(self.params.X.shape)))
+        Z  = self.params.Z
         K  = np.arange(self.params.K)
+
+        mask  = self.params.Z == 1.
+        neigh = self.neighbors[mask]
         
-        for k in range(self.k):
-            for d in range(self.params.X.shape[1]):
-                mu[d] += partial_sum(self.data[:,d] * Z[:,k], neighbors[:,k], K)
+        self._N = subsum(np.ones(len(self.data)) if self.weights is None else self.weights,
+                         neigh, K) + 1e-10
 
-        N = partial_sum(Z.flatten(), neighbors.flatten(), K) + 1e-10
+        if self.weights is None:
+            mu = np.array([subsum(self.data[:,d], neigh, K)
+                                 for d in range(self.params.X.shape[1])])
+        else:
+            mu = np.array([subsum(self._weighted_data[d], neigh, K)
+                           for d in range(self.params.X.shape[1])])
 
-        self._mu = (mu / N).T
-        self._N  = N
+        self._mu = (mu / self._N).T
 
