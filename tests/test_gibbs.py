@@ -1,7 +1,7 @@
 import cg
 import numpy as np
 
-code = ['4ake','1oelA','1tyq'][2]
+code = ['4ake','1oelA','1tyq'][0]
 
 x = cg.load_example(code)
 K = {'4ake': 50, '1oelA': 150, '1tyq': 500}[code]
