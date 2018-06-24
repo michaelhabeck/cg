@@ -13,18 +13,22 @@ def find_cutoff(emmap, percentage):
 
     return prob[np.sum(cum <= percentage)]
 
-def map2cloud(emmap, cutoff):
+def map2cloud(emmap, cutoff, order=None):
 
     origin  = emmap.origin
     spacing = emmap.spacing
     shape   = emmap.shape
     rho     = emmap.data
 
+    if order is None: order = range(rho.ndim) 
+
+    rho     = rho.swapaxes(0,2)
+
     mask    = rho > cutoff
-    axes    = [origin[i] + np.arange(0, shape[i]) * spacing[i]
+    axes    = [origin[i] + np.arange(shape[i]) * spacing[i]
                for i in range(rho.ndim)]
     grid    = np.meshgrid(*axes)
-    coords  = np.array([x[mask] for x in grid]).T
+    coords  = np.array([grid[i][mask] for i in order]).T
 
     return coords, rho[mask]
 
