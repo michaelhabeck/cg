@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import time
 import contextlib
 import numpy as np
@@ -32,7 +34,7 @@ def take_time(desc):
     t0 = time.clock()
     yield
     dt = time.clock() - t0
-    print '{0} took {1}'.format(desc, format_time(dt))
+    print('{0} took {1}'.format(desc, format_time(dt)))
 
 def load_coords(pdbfile, chainids=None):
 

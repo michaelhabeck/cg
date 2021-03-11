@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 
 from csb.bio.utils import radius_of_gyration, rmsd
@@ -80,7 +82,7 @@ class GibbsSampler(object):
                 np.sum(self.posteriors['X'].likelihood.N<1.), 
                 radius_of_gyration(samples['X'][-1]))
                 
-        print GibbsSampler.output.format(*info)
+        print(GibbsSampler.output.format(*info))
 
     def run(self, n_iter=1e4, verbose=1, dt_max=1e-1, dt_start=1e-4):
 
