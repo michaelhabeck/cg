@@ -60,7 +60,7 @@ def calc_distances(coords):
     from .lj import squared_distances
 
     x = np.ascontiguousarray(coords.flatten())
-    d = np.zeros(len(coords) * (len(coords)-1) / 2)
+    d = np.zeros(len(coords) * (len(coords)-1) // 2)
 
     squared_distances(x, d)
 
@@ -84,7 +84,7 @@ def rdf(coords, bins=100, r_max=None):
     """
     if np.ndim(coords) == 2: coords = [coords]
 
-    d = np.sqrt(np.concatenate(map(calc_distances, coords), 0))
+    d = np.sqrt(np.concatenate(list(map(calc_distances, coords)), 0))
     if r_max is not None: d = d[d<r_max]
         
     g, bins = np.histogram(d, bins=bins)
